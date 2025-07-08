@@ -1,4 +1,4 @@
-import DBConfig from './ .. /configs/DBConfig.js';
+import DBConfig from './src/configs/DBConfig.js';
 import pkg from 'pg'
 const { Client, Pool } = pkg;
 
@@ -8,7 +8,7 @@ let returnArray = null;
 const client = new Client(DBConfig);
 try {
 await client.connect();
-const sql = `SELECT * FROM provinces`;
+const sql = `SELECT * FROM events`;
 const result = await client.query(sql);
 await client.end();
 returnArray = result.rows;
@@ -16,10 +16,11 @@ returnArray = result.rows;
 console.log(error);
 }
 return returnArray;
-
+}
 getByIdAsync = async (id) => {  }
 createAsync = async (entity) => {  }
 updateAsync = async (entity) => {  }
 deleteByIdAsync = async (id) => { }
 
-}}
+}
+

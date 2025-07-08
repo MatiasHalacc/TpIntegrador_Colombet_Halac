@@ -1,8 +1,8 @@
-import ProvinceRepository from ' .. /repositories/province-repository.js';
+import EventRepository from './event-repository.js';
 
-export default class ProvinceService {
+export default class EventService {
     getAllAsync = async () => {
-    const repo = new ProvinceRepository();
+    const repo = new EventRepository();
     const returnArray = await repo. getAllAsync();
     return returnArray;
 }

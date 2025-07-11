@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
       const returnArray = await svc.getAllAsync();
       if (returnArray != null) {
         return res.status(200).json(returnArray);
-      } else {
+      } else { 
         return res.status(500).send('Error interno: retorno nulo');
       }
     } catch (error) {

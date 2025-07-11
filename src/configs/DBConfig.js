@@ -1,12 +1,12 @@
 import 'dotenv/config'
 
 const DBConfig = {
-    host    : process.env.DB_HOST   ?? '',
-    databse    : process.env.DB_DATABSE   ?? '',
-    user    : process.env.DB_USER   ?? '',
-    password    : process.env.DB_PASSWORD   ?? '',
-    port    : process.env.DB_PORT   ?? 5432
-
-}
+    host: process.env.DB_HOST?.trim() || 'localhost',
+    database: process.env.DB_DATABASE?.trim() || 'EVENTOS',
+    user: process.env.DB_USER?.trim() || 'postgres',
+    password: process.env.DB_PASSWORD?.trim() || 'root',
+    port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
+  }
+  
 
 export default DBConfig

@@ -3,7 +3,7 @@ import EventRepository from './event-repository.js';
 export default class EventService {
     getAllAsync = async () => {
     const repo = new EventRepository();
-    const returnArray = await repo. getAllAsync();
+    const returnArray = await repo.getAllAsync();
     return returnArray;
 }
 

@@ -7,7 +7,12 @@ export default class EventService {
     return returnArray;
 }
 
-getByIdAsync = async (id) =>{ }
+getByIdAsync = async (id) => {
+    const repo = new EventRepository();          // Crear instancia del repositorio
+    const event = await repo.getByIdAsync(id);   // Obtener un evento por su ID
+    return event;                                // Devolver el evento encontrado
+}
+
 createAsync = async (entity) => { }
 updateAsync = async (entity) => { }
 deleteByIdAsync = async (id) => { }

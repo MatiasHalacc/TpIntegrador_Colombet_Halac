@@ -4,19 +4,19 @@ const { Client, Pool } = pkg;
 
 export default class EventRepository {
 getAllAsync = async () => {
-let returnArray = null;
-const client = new Client(DBConfig);
-console.log({client})
-try {
-await client.connect();
-const sql = `SELECT * FROM public.events`;
-const result = await client.query(sql);
-await client.end();
-returnArray = result.rows;
-} catch (error) {
+  let returnArray = null;
+  const client = new Client(DBConfig);
+  console.log({client})
+  try {
+    await client.connect();
+    const sql = `SELECT * FROM public.events`;
+    const result = await client.query(sql);
+    await client.end();
+    returnArray = result.rows;
+  } catch (error) {
     console.error('Error al obtener eventos:', error.message, error.stack);
-}
-return returnArray;
+  }
+  return returnArray;
 }
 getByIdAsync = async (id) => {
     const idINT = parseInt(id);
@@ -38,11 +38,40 @@ getByIdAsync = async (id) => {
       return result.rows.length > 0 ? result.rows[0] : null;
     } catch (error) {
       console.error('Error al obtener evento por id:', error.message, error.stack);
-      throw error; // para que el controlador pueda capturar el error
+      throw error; 
     }
   }
-  
-  
+
+  getFilteredEventAsync = async (name, startDate, tag) => {
+    const client = new Client(DBConfig);
+    let query = `SELECT * FROM public.events WHERE 1=1`;  // Inicia con una consulta que siempre es verdadera
+    const params = [];
+
+    if (name) {
+      query += ` AND name ILIKE $${params.length + 1}`;  // Filtrar por nombre, sin distinguir mayúsculas/minúsculas
+      params.push(`%${name}%`);
+    }
+
+    if (startDate) {
+      query += ` AND start_date >= $${params.length + 1}`;  // Filtrar por fecha de inicio
+      params.push(startDate);
+    }
+
+    if (tag) {
+      query += ` AND tag ILIKE $${params.length + 1}`;  // Filtrar por tag
+      params.push(`%${tag}%`);
+    }
+
+    try {
+      await client.connect();
+      const result = await client.query(query, params);  
+      await client.end();
+      return result.rows;  // Retorna los eventos que coinciden con los filtros
+    } catch (error) {
+      console.error('Error al obtener eventos filtrados:', error.message, error.stack);
+      throw error;
+    }
+  };
  }
 //createAsync = async (entity) => {  }
 //updateAsync = async (entity) => {  }

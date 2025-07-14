@@ -12,7 +12,11 @@ getByIdAsync = async (id) => {
     const event = await repo.getByIdAsync(id);   // Obtener un evento por su ID
     return event;                                // Devolver el evento encontrado
 }
-
+getFilteredEventAsync = async (name, startDate, tag) => {
+    const repo = new EventRepository();
+    const events = await repo.getFilteredEventAsync(name, startDate, tag);
+    return events;
+  };
 createAsync = async (entity) => { }
 updateAsync = async (entity) => { }
 deleteByIdAsync = async (id) => { }

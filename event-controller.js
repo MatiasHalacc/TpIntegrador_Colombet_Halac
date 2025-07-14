@@ -21,9 +21,9 @@ router.get('/', async (req, res) => {
       const id = req.params.id;
       const result = await svc.getByIdAsync(id); 
       if (result != null) {
-        return res.status(200).json(result);          // Retornar el evento
+        return res.status(200).json(result);         
       } else {
-        return res.status(404).send('Evento no encontrado'); // Si no se encontró
+        return res.status(404).send('Evento no encontrado');
       }
     } catch (error) {
       console.error('Error en getByIdAsync:', error);
@@ -31,7 +31,20 @@ router.get('/', async (req, res) => {
     }
   });
   
-router.get('/:id', async (req, res) => {  });
+  router.get('/', async (req, res) => {
+    const { name, startDate, tag } = req.query; 
+    try {
+      const events = await svc.getFilteredEventAsync(name, startDate, tag); 
+      if (events && events.length > 0) {
+        return res.status(200).json(events);  
+      } else {
+        return res.status(404).send('No se encontraron eventos');
+      }
+    } catch (error) {
+      console.error('Error al obtener eventos filtrados:', error);
+      return res.status(500).send('Error interno: ' + error.message);
+    }
+  });
 router.post('', async (req, res) => {  });
 router.put('', async (req, res) => { });
 router.delete('/:id', async (req, res) => { });

@@ -66,14 +66,134 @@ getByIdAsync = async (id) => {
       await client.connect();
       const result = await client.query(query, params);  
       await client.end();
-      return result.rows;  // Retorna los eventos que coinciden con los filtros
+      return result.rows;  
     } catch (error) {
       console.error('Error al obtener eventos filtrados:', error.message, error.stack);
       throw error;
     }
   };
- }
-//createAsync = async (entity) => {  }
+
+  
+  createAsync = async (user) => {
+    const client = new Client(DBConfig);
+    await client.connect();
+  
+    const sql = `
+      INSERT INTO public.users (first_name, last_name, username, password)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *;
+    `;
+  
+    const values = [
+      user.first_name,
+      user.last_name,
+      user.username,
+      user.password
+    ];
+  
+    const result = await client.query(sql, values);
+    console.log('Usuario insertado:', result.rows[0]); 
+    await client.end();
+  
+    return result.rows[0];
+  }
+
+  getUserByUsername = async (username) => {
+    const client = new Client(DBConfig);
+    await client.connect();
+    const sql = `SELECT * FROM public.users WHERE username = $1 LIMIT 1`;
+    const result = await client.query(sql, [username]);
+    await client.end();
+    return result.rows[0] || null;
+  };
+  
+  getEventById = async (id) => {
+    const client = new Client(DBConfig);
+    await client.connect();
+    const sql = `SELECT * FROM public.events WHERE id = $1`;
+    const result = await client.query(sql, [id]);
+    await client.end();
+    return result.rows[0] || null;
+  };
+
+  getMaxCapacityByLocationId = async (eventLocationId) => {
+    const client = new Client(DBConfig);
+    await client.connect();
+    const sql = `
+      SELECT el.*, l.max_capacity
+      FROM public.event_locations el
+      JOIN public.locations l ON el.id_location = l.id
+      WHERE el.id = $1
+    `;
+    const result = await client.query(sql, [eventLocationId]);
+    await client.end();
+    return result.rows[0]?.max_capacity || null;
+  };
+
+  createEvent = async (event) => {
+    const client = new Client(DBConfig);
+    await client.connect();
+    const sql = `
+      INSERT INTO public.events 
+      (name, description, start_date, price, enables_for_enrollment, duration_in_minutes, max_assistance, id_event_location, id_creator_user)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *;
+    `;
+    const values = [
+      event.name,
+      event.description,
+      event.start_date,
+      event.price,
+      event.enables_for_enrollment,
+      event.duration_in_minutes,
+      event.max_assistance,
+      event.id_event_location,
+      event.creatorUserId
+    ];
+    const result = await client.query(sql, values);
+    await client.end();
+    return result.rows[0];
+  };
+
+  updateEvent = async (event) => {
+    const client = new Client(DBConfig);
+    await client.connect();
+    const sql = `
+      UPDATE public.events SET 
+        name = $1,
+        description = $2,
+        start_date = $3,
+        price = $4,
+        duration_in_minutes = $5,
+        max_assistance = $6,
+        id_event_location = $7
+      WHERE id = $8
+      RETURNING *;
+    `;
+    const values = [
+      event.name,
+      event.description,
+      event.start_date,
+      event.price,
+      event.duration_in_minutes,
+      event.max_assistance,
+      event.id_event_location,
+      event.id
+    ];
+    const result = await client.query(sql, values);
+    await client.end();
+    return result.rows[0];
+  };
+
+  deleteEvent = async (id) => {
+    const client = new Client(DBConfig);
+    await client.connect();
+    const sql = `DELETE FROM public.events WHERE id = $1`;
+    await client.query(sql, [id]);
+    await client.end();
+  };
+}
+
 //updateAsync = async (entity) => {  }
 //deleteByIdAsync = async (id) => { }
 

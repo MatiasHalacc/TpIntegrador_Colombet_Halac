@@ -1,5 +1,6 @@
 import {Router} from 'express'
-import EventService from './event-service.js'
+import EventService ,{createUser, loginUser} from './event-service.js'
+import { authenticate } from './auth-middleware.js';
 const router = Router();
 const svc = new EventService();
 
@@ -45,9 +46,63 @@ router.get('/', async (req, res) => {
       return res.status(500).send('Error interno: ' + error.message);
     }
   });
-router.post('', async (req, res) => {  });
-router.put('', async (req, res) => { });
-router.delete('/:id', async (req, res) => { });
+
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  router.post('/register', async (req, res) => {
+    try {
+      const user = await createUser(req.body);
+      res.status(201).json(user);
+    } catch (err) {
+      console.error('Error:', err.message);
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  router.post('/login', async (req, res) => {
+    try {
+      console.log('POST /login recibido con body:', req.body);
+      const response = await loginUser(req.body);
+      console.log('Login exitoso:', response);
+      res.status(200).json(response);
+    } catch (err) {
+      console.error('Error en /login:', err);
+      res.status(err.statusCode || 500).json({
+        success: false,
+        message: err.message,
+        token: '',
+      });
+    }
+  });
+
+  router.post('/event', authenticate, async (req, res) => {
+    try {
+      const newEvent = await svc.createEvent({ ...req.body, creatorUserId: req.user.id });
+      res.status(201).json(newEvent);
+    } catch (err) {
+      res.status(err.status || 400).json({ message: err.message });
+    }
+  });
+  
+  router.put('/event', authenticate, async (req, res) => {
+    try {
+      const updated = await svc.updateEvent(req.body, req.user.id);
+      res.status(200).json(updated);
+    } catch (err) {
+      res.status(err.status || 400).json({ message: err.message });
+    }
+  });
+  router.delete('/event/:id', authenticate, async (req, res) => {
+    try {
+      await svc.deleteEvent(parseInt(req.params.id), req.user.id);
+      res.status(200).json({ message: 'Evento eliminado correctamente' });
+    } catch (err) {
+      res.status(err.status || 400).json({ message: err.message });
+    }
+  });
 
 export default router;
 

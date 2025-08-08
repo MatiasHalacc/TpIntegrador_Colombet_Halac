@@ -104,5 +104,14 @@ router.get('/', async (req, res) => {
     }
   });
 
+  router.post('/:id/enrollment', authenticate, async (req, res) => {
+    try {
+      const newEvent = await svc.UserEvent({ ...req.body, id: parseInt(req.params.id)});
+      res.status(201).json(newEvent);
+    } catch (err) {
+      res.status(err.status || 400).json({ message: err.message });
+    }
+  });
+
 export default router;
 

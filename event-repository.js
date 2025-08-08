@@ -192,6 +192,32 @@ getByIdAsync = async (id) => {
     await client.query(sql, [id]);
     await client.end();
   };
+
+  UserEvent  = async (Usuario) => {
+    const client = new Client(DBConfig);
+    const currentDate = new Date();
+    const formattedDate = currentDate.toLocaleDateString('ar-GB');
+    await client.connect();
+    const sql = `
+    INSERT INTO public.event_enrollments
+    (id_event, id_user, description, registration_date_time, attended, observations, rating)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING *;
+    `;
+    const values = [
+      "5",
+      Usuario.id,
+      "prueba",
+      formattedDate,
+      true,
+      "prueba1",
+      "5"
+    ];
+    const result = await client.query(sql, values);
+      await client.end();
+    return result.rows[0];
+  };
+    
 }
 
 //updateAsync = async (entity) => {  }

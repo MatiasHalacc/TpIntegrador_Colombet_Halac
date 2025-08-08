@@ -12,7 +12,7 @@ export const authenticate = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
-    req.user = decoded; // Ahora tenés el usuario disponible en req.user
+    req.user = decoded;
     next();
   } catch (error) {
     return res.status(401).json({ success: false, message: 'Token inválido', token: '' });

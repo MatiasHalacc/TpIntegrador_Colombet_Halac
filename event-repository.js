@@ -193,31 +193,134 @@ getByIdAsync = async (id) => {
     await client.end();
   };
 
-  UserEvent  = async (Usuario) => {
+  UserEvent = async (eventId, userId) => {
     const client = new Client(DBConfig);
-    const currentDate = new Date();
-    const formattedDate = currentDate.toLocaleDateString('ar-GB');
+    const now = new Date();
+    const formattedDateTime = now.toISOString(); 
+
     await client.connect();
+
+    const evento = await client.query(
+      'SELECT max_assistance FROM events WHERE id = $1',
+      [eventId]
+    );
+    if (evento.rowCount === 0) {
+      await client.end();
+      throw new Error('El evento no existe');
+    }
+
+    const capacidadMaxima = evento.rows[0].max_assistance;
+
+    const contadorUsuarios = await client.query(
+      'SELECT COUNT(*) AS total FROM event_enrollments WHERE id_event = $1',
+      [eventId]
+    );
+    const totalInscritos = parseInt(contadorUsuarios.rows[0].total, 10);
+
+    if (totalInscritos >= capacidadMaxima) {
+      await client.end();
+      throw new Error('El evento ya alcanzó su capacidad máxima');
+    }
     const sql = `
-    INSERT INTO public.event_enrollments
-    (id_event, id_user, description, registration_date_time, attended, observations, rating)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
-    RETURNING *;
+      INSERT INTO public.event_enrollments
+      (id_event, id_user, description, registration_date_time, attended, observations, rating)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *;
     `;
     const values = [
-      "5",
-      Usuario.id,
+      eventId,
+      userId,
       "prueba",
-      formattedDate,
-      true,
-      "prueba1",
-      "5"
+      formattedDateTime,
+      false,
+      "prueba",
+      0
     ];
     const result = await client.query(sql, values);
-      await client.end();
+    await client.end();
     return result.rows[0];
   };
-    
+
+  getEventLocation = async (userId) => {
+    const client = new Client(DBConfig);
+    await client.connect();
+    const sql = `
+    SELECT 
+      el.id AS event_location_id,
+      el.name AS event_location_name,
+      el.full_adress,
+      el.max_capacity,
+      el.latitude,
+      el.longitude,
+      l.id AS location_id,
+      l.name AS location_name,
+      p.id AS province_id,
+      p.name AS province_name
+    FROM public.event_locations el
+    JOIN public.locations l ON el.id_location = l.id
+    JOIN public.provinces p ON l.id_province = p.id
+    WHERE EXISTS (  
+      SELECT 1
+      FROM public.events e
+      WHERE e.id_event_location = el.id
+        AND e.id_creator_user = $1
+    );`;
+    const result = await client.query(sql, [userId]);
+    await client.end();
+    return result.rows;
+  };
+
+  getEventLocationById = async (userId, idEventLocation) => {
+  const client = new Client(DBConfig);
+  await client.connect();
+  const sql = `
+    SELECT 
+      el.id AS event_location_id,
+      el.name AS event_location_name,
+      el.full_adress,
+      el.max_capacity,
+      el.latitude,
+      el.longitude,
+      l.id AS location_id,
+      l.name AS location_name,
+      p.id AS province_id,
+      p.name AS province_name
+    FROM public.event_locations el
+    JOIN public.locations l ON el.id_location = l.id
+    JOIN public.provinces p ON l.id_province = p.id
+    WHERE EXISTS (
+      SELECT 
+      FROM public.events e
+      WHERE e.id_event_location = $1
+        AND e.id_creator_user = $2
+    );
+  `;
+  const result = await client.query(sql, [idEventLocation, userId]);
+  await client.end();
+  return result.rows[0] || null;
+  };
+
+  locationExists = async (locationId) => {
+    const client = new Client(DBConfig);
+    await client.connect();
+    const result = await client.query('SELECT id FROM public.locations WHERE id = $1', [locationId]);
+    await client.end();
+    return result.rowCount > 0;
+  };
+
+  createEventLocation = async ({ id_location, name, full_adress, max_capacity, latitude, longitude }) => {
+    const client = new Client(DBConfig);
+    await client.connect();
+    const sql = `
+      INSERT INTO public.event_locations (id_location, name, full_adress, max_capacity, latitude, longitude)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `;
+    const values = [id_location, name, full_adress, max_capacity, latitude, longitude];
+    const result = await client.query(sql, values);
+    await client.end();
+    return result.rows[0];
+  };
 }
 
 //updateAsync = async (entity) => {  }

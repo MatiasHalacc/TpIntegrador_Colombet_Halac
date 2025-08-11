@@ -17,6 +17,42 @@ router.get('/', async (req, res) => {
       return res.status(500).send('Error interno: ' + error.message);
     }
   });
+
+  router.get('/event-location', authenticate, async (req, res) => {
+    try {
+      const idUsuario = parseInt(req.user.id, 10); 
+      const result = await svc.getEventLocation(idUsuario);
+      res.status(200).json(result);
+    } catch (err) {
+      const status = err.status || 400;
+      res.status(status).json({ message: err.message });
+    }
+  }); 
+  
+  router.get('/event-location/:id', authenticate, async (req, res) => {
+    try {
+      const idEventLocation = parseInt(req.params.id, 10);
+      const idUsuario = parseInt(req.user.id, 10);
+      const result = await svc.getEventLocationById(idUsuario, idEventLocation);
+      if (!result) return res.status(404).json({ message: 'event-location no encontrada o no pertenece al usuario' });
+      res.status(200).json(result);
+    } catch (err) {
+      const status = err.status || 400;
+      res.status(status).json({ message: err.message });
+    }
+  }); 
+
+    router.post('/event-location', authenticate, async (req, res) => {
+    try {
+      const created = await svc.createEventLocation(req.body, req.user.id);
+      res.status(201).json(created);
+    } catch (err) {
+      const status = err.status || 400;
+      res.status(status).json({ message: err.message });
+    }
+  });
+  
+  
   router.get('/:id', async (req, res) => {
     try {
       const id = req.params.id;
@@ -32,7 +68,7 @@ router.get('/', async (req, res) => {
     }
   });
   
-  router.get('/', async (req, res) => {
+  router.get('/search/filter', async (req, res) => {
     const { name, startDate, tag } = req.query; 
     try {
       const events = await svc.getFilteredEventAsync(name, startDate, tag); 
@@ -106,12 +142,28 @@ router.get('/', async (req, res) => {
 
   router.post('/:id/enrollment', authenticate, async (req, res) => {
     try {
-      const newEvent = await svc.UserEvent({ ...req.body, id: parseInt(req.params.id)});
-      res.status(201).json(newEvent);
+      const idEvento = parseInt(req.params.id);
+      const idUsuario = req.user.id;
+      const resultado = await svc.UserEvent(idEvento, idUsuario);
+      res.status(201).json(resultado);
     } catch (err) {
-      res.status(err.status || 400).json({ message: err.message });
+      const status = err.status || (err.message?.includes('Token') ? 401 : 400);
+      res.status(status).json({ message: err.message });
     }
   });
+
+  router.delete('/:id/enrollment', authenticate, async (req, res) => {
+    try {
+      const idEvento = parseInt(req.params.id);
+      const idUsuario = req.user.id;
+      await svc.deleteUser(idEvento, idUsuario);
+      res.status(200).json({ message: 'Inscripción eliminada correctamente' });
+    } catch (err) {
+      const status = err.status || 400;
+      res.status(status).json({ message: err.message });
+    }
+  });
+
 
 export default router;
 

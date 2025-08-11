@@ -48,6 +48,42 @@ deleteEvent = async (id, userId) => {
     await repo.deleteEvent(id);
   };
 
+  UserEvent = async (IdEvento, IdUsuario) => {
+    const repo = new EventRepository();
+    return await repo.UserEvent(IdEvento, IdUsuario);
+  };
+
+  deleteUser = async (IdEvento, IdUsuario) => {
+    const repo = new EventRepository();
+    await repo.deleteUser(IdEvento, IdUsuario);
+  };
+
+  getEventLocation = async (idUsuario) => {
+    const repo = new EventRepository();
+    return await repo.getEventLocation(idUsuario);
+  };
+
+  getEventLocationById = async (idUsuario, idEvento) => {
+  const repo = new EventRepository();
+  return await repo.getEventLocationById(idUsuario, idEvento);
+  };
+
+  createEventLocation = async (payload, userId) => {
+    const repo = new EventRepository();
+    const { id_location, name, full_adress, max_capacity, latitude, longitude } = payload || {};
+
+    if (!name || name.trim().length < 3) throw { status: 400, message: 'El nombre (name) está vacío o tiene menos de tres letras' };
+    if (!full_adress || full_adress.trim().length < 3) throw { status: 400, message: 'La dirección (full_adress) está vacía o tiene menos de tres letras' };
+    if (!Number.isInteger(id_location) || id_location <= 0) throw { status: 400, message: 'id_location inválido' };
+    if (!Number.isInteger(max_capacity) || max_capacity <= 0) throw { status: 400, message: 'El max_capacity debe ser mayor que cero' };
+
+    const exists = await repo.locationExists(id_location);
+    if (!exists) throw { status: 400, message: 'El id_location es inexistente' };
+
+    const created = await repo.createEventLocation({ id_location, name: name.trim(), full_adress: full_adress.trim(), max_capacity, latitude, longitude });
+    return created;
+  };
+
 }
 
 const validateEventFields = async (event, repo) => {

@@ -44,21 +44,21 @@ getByIdAsync = async (id) => {
 
   getFilteredEventAsync = async (name, startDate, tag) => {
     const client = new Client(DBConfig);
-    let query = `SELECT * FROM public.events WHERE 1=1`;  // Inicia con una consulta que siempre es verdadera
+    let query = `SELECT * FROM public.events WHERE 1=1`;  
     const params = [];
 
     if (name) {
-      query += ` AND name ILIKE $${params.length + 1}`;  // Filtrar por nombre, sin distinguir mayúsculas/minúsculas
+      query += ` AND name ILIKE $${params.length + 1}`;  
       params.push(`%${name}%`);
     }
 
     if (startDate) {
-      query += ` AND start_date >= $${params.length + 1}`;  // Filtrar por fecha de inicio
+      query += ` AND start_date >= $${params.length + 1}`;  
       params.push(startDate);
     }
 
     if (tag) {
-      query += ` AND tag ILIKE $${params.length + 1}`;  // Filtrar por tag
+      query += ` AND tag ILIKE $${params.length + 1}`; 
       params.push(`%${tag}%`);
     }
 
